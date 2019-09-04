@@ -1,0 +1,515 @@
+---
+title: "Multifidelity Computer Model Emulation"
+output:
+  html_document: 
+    number_sections: true
+  pdf_document: 
+      number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+In this document, I will give a detailed illustration of the proposed parallel partial cokriging model with a toy example and storm surge simulations from the 
+ADCIRC model and the SWAN+ADCIRC model. This document can be served as suplementary
+materials to reproduce the results in the main manuscript.
+
+## Install the ARCokrig Package
+The parallel partial cokriging method is implemented in the ARCokrig R package. We first install the ARCokrig package.
+```{r install packages}
+## install relevant packages if not installed 
+#install.packages(c("Rcpp", "RcppEigen", "RcppArmadillo", "RobustGaSP", "mvtnorm", "fields"))
+## install ARCokrig package from local source
+#install.packages("ARCokrig_0.1.0.tar.gz", repos=NULL, type="source")
+## one can also install the package from github
+library(devtools)
+#install_github("pulongma/ARCokrig")
+library(ARCokrig)
+```
+
+
+# A Toy Example
+
+After installing the package, we start with a toy example with two levels, where the high-fidelity code is a scale multiple of low-fidelity code plus a
+non-linear location discrepancy term. The design for level 1 code is set up as 20 points uniformly located in the interval [-1, 1] with spacing 0.1, which will be denoted as $\mathcal{X}_1$. The design for the high-fidelity code is set up as $\mathcal{X}_2=\{-1, -0.8, -0.55, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 1\}$. Hence, $\mathcal{X}_2$ is not nested within $\mathcal{X}_1$.
+
+```{r sim exp, echo=TRUE}
+library(ggplot2)
+library(ARCokrig)
+
+#########################################################################
+#########################################################################
+## test function
+fun.lf = function(x){
+  return(0.5*(6*x-2)^2*sin(12*x-4)+10*(x-0.5)-5)
+}
+
+fun.hf = function(x){
+  z1 = fun.lf(x)
+  z2 = 2*z1-20*x+20 + sin(10*cos(5*x))
+  return(z2)
+}
+
+## setup the design 
+Dc = seq(-1,1,0.1)
+Df = c(-1, -0.8, -0.55, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 1)
+
+zc = fun.lf(Dc)
+zf = fun.hf(Df)
+
+## predictive inputs
+input.new = as.matrix(seq(-1,1,le=200))
+
+#########################################################################
+#########################################################################
+## perform the autoregressive cokriging  
+output = list(as.matrix(zc), as.matrix(zf))
+input = list(as.matrix(Dc), as.matrix(Df))
+
+tuning = list(maxit=30, n.sample=30, verbose=TRUE)
+obj = cokm(formula=list(~1,~1+x1), output=output, input=input,
+           param=list(0.1,0.1), cov.model="matern_5_2", NestDesign=FALSE,
+           tuning=tuning)
+obj = cokm.fit(obj)
+
+## nsample is set to be large, so that a nice plot is generated. 
+## The improvement of prediction performance is negligible 
+## by tuning the Monte Carlo sample size
+pred = cokm.condsim(obj, input.new=input.new, nsample=1000)
+
+pred.non = pred
+yhat.l2 = pred.non$mu[[2]]
+CI.lower = pred.non$lower95[[2]]
+CI.upper = pred.non$upper95[[2]]
+
+df.l1 = data.frame(x=c(Dc), y=c(zc))
+df.l2 = data.frame(x=c(Df), y=c(zf))
+
+#########################################################################
+#########################################################################
+### plottting 
+
+g1 = ggplot(data.frame(x=c(-1,1)), aes(x)) + 
+  stat_function(fun=fun.lf, geom="line", aes(colour="level 1"), n=500) +
+  stat_function(fun=fun.hf, geom="line", aes(colour="level 2"), n=500)
+
+g1 = g1 + geom_point(data=df.l1, mapping=aes(x=x, y=y), shape=16, size=2, color="black") + 
+  geom_point(data=df.l2, mapping=aes(x=x, y=y), shape=17, size=2, color="black")
+
+df.CI = data.frame(x=c(input.new),lower=CI.lower, upper=CI.upper)
+df.pred = data.frame(x=c(input.new), y=yhat.l2)
+g1 = g1 + geom_line(data=df.pred, aes(x=x, y=y, color="cokriging"))
+g1 = g1 + geom_ribbon(data=df.CI, mapping=aes(x=x,ymin=lower, ymax=upper), fill="gray40",alpha=0.3)
+g1 = g1 +   scale_colour_manual(name=NULL, values=c("red", "blue", "turquoise3"), breaks=c("cokriging", "level 1", "level 2"))
+g1 = g1 +  
+  theme(plot.title=element_text(size=14),
+        axis.title.x=element_text(size=14),
+        axis.text.x=element_text(size=14),
+        axis.title.y=element_text(size=14),
+        axis.text.y=element_text(size=14),
+        legend.text = element_text(size=12),
+        legend.direction = "horizontal",
+        legend.position = c(0.6, 0.1)) + xlab("") + ylab("")
+print(g1)
+
+
+#########################################################################
+#########################################################################
+## Kriging with High-Fidelity Data 
+
+library(RobustGaSP)
+H = cbind(rep(1, length.out=length(Df)), Df)
+kfit = RobustGaSP::rgasp(design=Df, response=zf, trend=H)
+Hp = cbind(rep(1, length.out=dim(input.new)[1]), input.new)
+kpred = RobustGaSP::predict(object=kfit, testing_input=input.new,
+                            testing_trend=Hp)
+
+df.l0 = data.frame(x=input.new, y=kpred$mean)
+df.l1 = data.frame(x=c(Dc), y=c(zc))
+df.l2 = data.frame(x=c(Df), y=c(zf))
+
+
+df.CI = data.frame(x=c(input.new),lower=kpred$lower95, upper=kpred$upper95)
+
+## figures for kriging
+g2 = ggplot(data.frame(x=c(-1,1)), aes(x)) + 
+  stat_function(fun=fun.lf, geom="line", aes(colour="level 1"), n=500) +
+  stat_function(fun=fun.lf, geom="line", aes(colour="level 2"), n=500) 
+g2 = g2 + 
+  geom_point(data=df.l2, mapping=aes(x=x, y=y), shape=17, size=2, color="black")
+
+g2 = g2 + geom_line(data=df.l0, aes(x=x, y=y, colour="kriging"), 
+                    inherit.aes=FALSE)
+g2 = g2 + geom_ribbon(data=df.CI, mapping=aes(x=x,ymin=lower, ymax=upper), 
+                      fill="gray40", alpha=0.3, inherit.aes=FALSE)
+g2 = g2 +   scale_colour_manual(name=NULL, values=c("red", "blue", "turquoise3"), 
+                                breaks=c( "kriging", "level 1", "level 2"))
+
+g2 = g2 + 
+  theme(plot.title=element_text(size=14),
+        axis.title.x=element_text(size=14),
+        axis.text.x=element_text(size=14),
+        axis.title.y=element_text(size=14),
+        axis.text.y=element_text(size=14),
+        legend.text = element_text(size=12),
+        legend.direction = "horizontal",
+        legend.position = c(0.6, 0.1)) + xlab("") + ylab("")
+print(g2)
+
+```
+
+# Storm Surge Application
+
+The storm surges are simulated from the ADCIRC model, and the SWAN + ADCIRC model, which will be referred to as the low-fidelity simulator and the high-fidelity simulator. The goal here is to demonstrate the propoased parallel partial cokriging model to emulate the high-fidelity simulator based on a very limited number of high-fidelity model runs and a small number of low-fidelity model runs.
+
+```{r storm surge, echo=TRUE}
+library(ARCokrig)
+## load storm surge simulations
+load("StormSurge.RData")
+
+## set up the design
+n_runs = dim(inputs)[1]
+k_outputs = dim(lonlat)[1]
+set.seed(123)
+id.input = 1:n_runs
+id.output = 1:k_outputs 
+id.training = sample(id.input, 60)
+z.hf = PSE.hf[id.training, id.output]
+set.seed(234)
+id.remain = id.input[-id.training]
+id.lf = c(sample(id.remain, 140), id.training)
+z.lf = PSE.lf[id.lf, id.output]
+
+# convert long/lat of lanfall to distance
+library(fields)
+lon0 = min(inputs[ ,6])
+lat0 = max(inputs[, 7])
+reference = matrix(c(lon0, lat0), nrow=1)
+dist = c(rdist.earth(reference, inputs[ ,c(6,7)]))
+inputs.6Dim = cbind(inputs[ ,1:5], dist)
+
+input.hf = inputs.6Dim[id.training, ]
+input.lf = inputs.6Dim[id.lf, ]
+
+input.max = apply(inputs.6Dim, 2, max)
+input.min = apply(inputs.6Dim, 2, min)
+delta = input.max - input.min
+
+set.seed(1234)
+id.h.l = c(1:140, 140 + sample(1:60, 50))
+zc = z.lf[id.h.l, ]  
+zf = z.hf
+Dc = input.lf[id.h.l, ]
+Df = input.hf
+output = list(zc, zf)
+input = list(Dc, Df)
+
+inputdata.new = inputdata[-id.training, ]
+input.new = inputs.6Dim[-id.training, ]
+output.new = PSE.hf[-id.training, id.output]
+output.new.lf = PSE.lf[-id.training, id.output]
+n.new = dim(output.new.lf)[1]
+input.new.orig = input.new
+
+## construct the mvcokm object
+cov.model = "matern_5_2"
+formula = list(~1, ~1)
+
+param = list(c(delta/4), c(delta/4))
+
+opt = list(maxit=800)
+prior = list(name="JR")
+NestDesign = FALSE
+
+obj = mvcokm(formula=formula, output=output, input=input, param=param,
+             cov.model="matern_5_2",prior=prior,opt=opt,
+             NestDesign=NestDesign)
+
+## fit the PP cokriging model
+# this step takes about 4.5 hours on a macbook pro
+obj@tuning$maxit=20
+obj@tuning$verbose = TRUE
+
+#t1 = proc.time()
+#obj.fitted = mvcokm.fit(obj)
+#t.est = proc.time() - t1
+
+# load the fitted data
+load("PSE_fitted_data.RData")
+
+## predict with the PP cokriging model
+
+y.testing = output.new
+z.testing = output.new.lf
+n.new = dim(y.testing)[1]
+
+# takes about 10 minutes for all 166 inputs
+t1 = proc.time()
+sim = mvcokm.condsim(obj=obj.fitted, input.new=input.new)
+t.sim = proc.time() - t1
+pred = sim
+
+#########################################################################
+#########################################################################
+## compute predictive measures  (Table 2)
+
+# a function to compute all the predictive measures
+nump <- function(y.testing, y.pred, Lower95, Upper95, y.predSE){
+  RMSPE=sqrt(mean((y.testing-y.pred)^2))
+  PCI95 = mean( (Lower95<y.testing) & (Upper95>y.testing) )
+  LCI95 = mean(Upper95 - Lower95)
+  crps = mean(CRPS(y.testing, y.pred, y.predSE))
+  y.testing.mean = apply(y.testing, 2, mean)
+    y.training.mean = apply(zf, 2, mean)
+  res = y.pred - matrix(rep(y.training.mean, 
+        times=dim(y.testing)[1]), byrow=T, nrow=dim(y.testing)[1])
+  NSME = 1 - sum((y.testing - y.pred)^2) / sum((res)^2)
+  
+  measure = c(RMSPE, PCI95, LCI95, crps, NSME)
+  names(measure) <- c("RMSPE", "P95CI", "L95CI", "CRPS", "NSME")
+  return(measure)
+}
+
+y.testing.overall = y.testing 
+y.pred.overall = pred$mu[[2]]
+Lower95.overall = pred$lower95[[2]]
+Upper95.overall = pred$upper95[[2]]
+y.predSE.overall = pred$SE[[2]]
+y.SE = y.predSE.overall
+
+measure.overall = nump(y.testing=y.testing.overall, y.pred=y.pred.overall,
+                       Lower95=Lower95.overall, Upper95=Upper95.overall,
+                       y.predSE=y.predSE.overall)
+print(measure.overall)
+
+```
+
+Next, we visualize the results in the manuscript.
+
+```{r plotting, echo=TRUE}
+
+## setup the plot
+library(ggplot2)
+library(reshape2)
+theme_mat = theme(axis.text=element_text(size=14),
+                  axis.title=element_text(size=14),
+                  axis.title.x=element_text(size=14),
+                  axis.text.x=element_text(size=12),
+                  axis.title.y=element_text(size=14),
+                  axis.text.y=element_text(size=12),
+                  legend.text=element_text(size=14),
+                  legend.title=element_text(size=14),
+                  plot.title=element_text(size=14)
+)
+source("map.surge.R")
+
+y.pred = y.pred.overall
+testing_input = input.new
+testing_inputdata = inputdata.new
+StormID = testing_inputdata$orig_name
+
+## focus on two storms in the figures
+indA=which(StormID=="LHS4_A_001545_000014")
+print(indA)
+indB=which(StormID=="LHS4_A_002444_000011")
+print(indB)
+
+#########################################################################
+#########################################################################
+#### Comparison of model runs (Figure 2)
+## model runs from the ADCIRC model
+i=indA
+df.PSE = data.frame(long=lonlat[ ,1],
+                    lat=lonlat[ ,2],
+                    value=z.testing[i,])
+zlim = c(0.6, 4)
+Lflocs = as.matrix(testing_inputdata[i, c(8,9)])
+g.l = map.surge(data.PSE=df.PSE, 
+                zlim=zlim, breaks=c(0.6, 2.3,  4), legendTitle="m")
+print(g.l)
+
+## model run from the SWAN + ADCIRC model
+df.PSE = data.frame(long=lonlat[ ,1],
+                    lat=lonlat[ ,2],
+                    value=y.testing[i, ])
+Lflocs = as.matrix(testing_inputdata[i, c(8,9)])
+
+g.h = map.surge(data.PSE=df.PSE, 
+                zlim=zlim, breaks=c(0.6, 2.3, 4),
+                legendTitle="m")
+print(g.h)
+
+## different between high-fidelity run and low-fidelity run
+df.PSE = data.frame(long=lonlat[ ,1],
+                    lat=lonlat[ ,2],
+                    value=y.testing[i, ] - z.testing[i, ])
+
+g.hl = map.surge(data.PSE=df.PSE, 
+                 zlim=c(0.04, 0.24), breaks=c(0.04, 0.14, 0.24),
+                 legendTitle="m")
+print(g.hl)
+
+### model runs at another input setting
+i=indB
+df.PSE = data.frame(long=lonlat[ ,1],
+                    lat=lonlat[ ,2],
+                    value=z.testing[i,])
+zlim = c(1.4, 6)
+Lflocs = as.matrix(testing_inputdata[i, c(8,9)])
+g.l = map.surge(data.PSE=df.PSE, 
+                zlim=zlim, breaks=c(1.4, 3.7, 6), legendTitle="m")
+print(g.l)
+
+## model run from the SWAN + ADCIRC model
+df.PSE = data.frame(long=lonlat[ ,1],
+                    lat=lonlat[ ,2],
+                    value=y.testing[i, ])
+Lflocs = as.matrix(testing_inputdata[i, c(8,9)])
+
+g.h = map.surge(data.PSE=df.PSE, 
+                zlim=zlim, breaks=c(1.4, 3.7, 6),
+                legendTitle="m")
+print(g.h)
+
+## different between high-fidelity run and low-fidelity run
+df.PSE = data.frame(long=lonlat[ ,1],
+                    lat=lonlat[ ,2],
+                    value=output.new[i, ] - output.new.lf[i, ])
+
+g.hl = map.surge(data.PSE=df.PSE, 
+                 zlim=c(0.1, 0.26), breaks=c(0.1, 0.18, 0.26),
+                 legendTitle="m")
+print(g.hl)
+
+#########################################################################
+#########################################################################
+#### prediction versus held-out output (Figure 4)
+i=indA
+PSE.df = data.frame(model=y.testing[i,], pred=y.pred[i, ])
+g.scatter1 = ggplot(PSE.df, aes(x=model, y=pred)) + 
+  geom_point(size=0.5, shape=1) + 
+  labs(x="Model output", y="Predicted output")
+g.scatter1 = g.scatter1 + geom_abline(intercept=0, slope=1) + 
+  theme(plot.title=element_text(size=14),
+        axis.title.x=element_text(size=14),
+        axis.text.x=element_text(size=12),
+        axis.title.y=element_text(size=14),
+        axis.text.y=element_text(size=12),
+        legend.text = element_text(size=12)
+  )
+print(g.scatter1)
+
+i=indB
+PSE.df = data.frame(model=y.testing[i,], pred=y.pred[i, ])
+g.scatter2 = ggplot(PSE.df, aes(x=model, y=pred)) + 
+  geom_point(size=0.5, shape=1) + 
+  labs(x="Model output", y="Predicted output")
+g.scatter2 = g.scatter2 + geom_abline(intercept=0, slope=1) + 
+  theme(plot.title=element_text(size=14),
+        axis.title.x=element_text(size=14),
+        axis.text.x=element_text(size=12),
+        axis.title.y=element_text(size=14),
+        axis.text.y=element_text(size=12),
+        legend.text = element_text(size=12)
+  )
+print(g.scatter2)
+
+#########################################################################
+#########################################################################
+#### Emulation errors across all spatial locations (Figure 6)
+## takes about 8 minutes to plot
+library(plyr)
+surge.error = y.pred - output.new
+#N = 9284
+N = dim(surge.error)[2]
+ind.new = 1:dim(surge.error)[1]
+y.error = c(surge.error[ind.new, ])
+
+df = data.frame(x1=rep(input.new[ind.new,1], N),
+                x2=rep(input.new[ind.new,2], N),
+                x3=rep(input.new[ind.new,3], N),
+                x4=rep(input.new[ind.new,4], N),
+                x5=rep(input.new[ind.new,5], N),
+                x2=rep(input.new[ind.new,6], N),
+                y = y.error)
+df.melt = melt(df, id="y")
+df.melt$variable = revalue(df.melt$variable, 
+                           c("x1"="central pressure deficit", 
+                             "x2"="scale pressure radius",
+                             "x3"="forward speed",
+                             "x4"="storm's heading",
+                             "x5"="Holland's B",
+                             "x2.1"="landfall"))
+g = ggplot(data=df.melt, aes(x=value, y=y, color=variable)) + 
+  geom_point(shape=21, color="black", size=0.5, fill="lightgray") + 
+  facet_wrap(variable ~ ., ncol=3, scale="free_x") + 
+  geom_abline(intercept=0, slope=0) + 
+  theme(plot.title=element_text(size=14),
+        strip.text.x = element_text(size=12),
+        axis.title.x=element_text(size=14),
+        axis.text.x=element_text(size=14),
+        axis.title.y=element_text(size=14),
+        axis.text.y=element_text(size=14)) + xlab("") + ylab("")
+print(g)
+
+#########################################################################
+#########################################################################
+#### plot model parameters
+library(ARCokrig)
+param.list = mvcokm.param(obj.fitted)
+b = param.list$coeff
+sigma2 = param.list$var
+gamma = b[[2]][2, ]
+
+## figure for beta 
+df.PSE = data.frame(long=lonlat[ ,1],
+                    lat=lonlat[ ,2],
+                    value=c(b[[1]]))
+
+g.b1 = map.surge(data.PSE=df.PSE, 
+                 zlim=c(0.5, 2), breaks=c(0.5, 1.25, 2),
+                 legendTitle="")
+print(g.b1)
+
+df.PSE = data.frame(long=lonlat[ ,1],
+                    lat=lonlat[ ,2],
+                    value=b[[2]][1,])
+summary(df.PSE$value)
+g.b2 = map.surge(data.PSE=df.PSE, 
+                 zlim=c(0, 0.1), breaks=c(0, 0.05, 0.1),
+                 legendTitle="")
+print(g.b2)
+
+## figure for gamma
+df.PSE = data.frame(long=lonlat[ ,1],
+                    lat=lonlat[ ,2],
+                    value=b[[2]][2,])
+
+g.gam = map.surge(data.PSE=df.PSE, 
+                  zlim=c(1, 1.1), breaks=c(1, 1.05, 1.1),
+                  legendTitle="")
+print(g.gam)
+
+## figures for sigma2
+df.PSE = data.frame(long=lonlat[ ,1],
+                    lat=lonlat[ ,2],
+                    value=sigma2[[1]]^0.5)
+
+g.sig1 = map.surge(data.PSE=df.PSE, 
+                   zlim=c(0.5, 1.2), breaks=c(0.5, 0.85, 1.2),
+                   legendTitle="")
+print(g.sig1)
+
+df.PSE = data.frame(long=lonlat[ ,1],
+                    lat=lonlat[ ,2],
+                    value=sigma2[[2]]^0.5)
+
+g.sig2 = map.surge(data.PSE=df.PSE, 
+                   zlim=c(0.02, 0.08), breaks=c(0.02, 0.05, 0.08),
+                   legendTitle="")
+print(g.sig2)
+
+```
+
