@@ -67,8 +67,17 @@
 #' @author Pulong Ma <mpulong@gmail.com>
 #' @export
 #' 
+#' 
 #' @seealso \code{\link{cokm}}, \code{\link{cokm.param}}, \code{\link{cokm.fit}}, \code{\link{cokm.predict}}
 #' 
+#'
+#' @references {
+#' \itemize{
+#' \item{Ma, P. (2019). ``Objective Bayesian Analysis of a Cokriging Model for Hierarchical Multifidelity Codes." arXiv:1910.10225. \url{https://arxiv.org/abs/1910.10225}. }
+#' \item{Ma, P., Karagiannis, G., Konomi, B., Asher, T., Toro, G., and Cox, A. (2019) ``Multifidelity Computer Model Emulation with High-Dimensional Output: An Application to Storm Surge."
+#'      arXiv:1909.01836. \url{https://arxiv.org/abs/1909.01836}.}
+#' }
+#' }
 #'
 #' @examples 
 #' 
