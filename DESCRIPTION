@@ -1,0 +1,15 @@
+Package: ARCokrig
+Type: Package
+Title: Autoregressive Cokriging Models for Multifidelity Codes	
+Version: 0.1.0
+Date: 2019-06-23
+Authors@R: c(person("Pulong", "Ma", role=c("aut", "cre"), email="mpulong@gmail.com"))
+Maintainer: Pulong Ma <mpulong@gmail.com>
+Description: For emulating multifidelity computer models. The major methods include univariate autoregressive cokriging and multivariate autoregressive cokriging. The autoregressive cokriging methods are implemented for both hierarchically nested design and non-nested design. For hierarchically nested design, the model parameters are estimated via standard optimization algorithms; For non-nested design, the model parameters are estimated via MCEM algorithms. In both cases, the priors are chosen such that the posterior distributions are proper. Notice that the uniform priors on range parameters in the correlation function lead to improper posteriors. This should be avoided when Bayesian analysis is adopted. 
+License: GPL (>=2)
+Encoding: UTF-8
+URL: https://github.com/pulongma/ARCokriging/issues
+Imports: Rcpp (>= 1.0.0), mvtnorm (>= 1.0-10), stats, methods
+LinkingTo: Rcpp, RcppArmadillo, RcppEigen
+Suggests: testthat
+RoxygenNote: 7.1.0
