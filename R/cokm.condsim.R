@@ -34,10 +34,10 @@
 #' 
 #' 
 #' ## create the cokm object
-#' prior = list(name="JR")
+#' prior = list(name="Reference")
 #' obj = cokm(formula=list(~1,~1+x1), output=list(c(zc), c(zf)),
 #'               input=list(as.matrix(Dc), as.matrix(Df)),
-#'               prior=prior, param=list(0.4, 0.2), cov.model="matern_5_2")
+#'               prior=prior, cov.model="matern_5_2")
 #'
 #' ## update model parameters in the cokm object
 #' \dontrun{

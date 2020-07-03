@@ -1,6 +1,8 @@
 #' @title Prediction at new inputs in the autoregressive cokriging model
 #' @description This function makes prediction in
-#'  autogressive cokriging models
+#'  autogressive cokriging models. If a nested design is used, the predictive mean and predictive variance are
+#'  computed exactly; otherwise, Monte Carlo simulation from the predictive distribution is used to approximate
+#' the predictive mean and predictive variance. 
 #'  
 #' @param obj a \code{\link{cokm}} object construted via the function \code{\link{cokm}} in 
 #' this package
@@ -35,10 +37,10 @@
 #' 
 #' 
 #' ## create the cokm object
-#' prior = list(name="JR")
+#' prior = list(name="Reference")
 #' obj = cokm(formula=list(~1,~1+x1), output=list(c(zc), c(zf)),
 #'               input=list(as.matrix(Dc), as.matrix(Df)),
-#'               prior=prior, param=list(0.4, 0.2), cov.model="matern_5_2")
+#'               prior=prior, cov.model="matern_5_2")
 #'
 #' ## update model parameters in the cokm object
 #' \dontrun{
@@ -56,6 +58,7 @@ output = obj@output
 input = obj@input 
 param = obj@param
 cov.model = obj@cov.model 
+nugget.est = obj@nugget.est
 NestDesign = obj@NestDesign
 
 phi = do.call(cbind, param)
@@ -68,11 +71,7 @@ if(NestDesign){
 
   Dim = dim(input[[1]])[2]
   p.x = Dim
-  if(dim(phi)[1]==Dim){
-  	is.nugget=FALSE
-  }else{
-  	is.nugget=TRUE
-  }
+  is.nugget = nugget.est
 
   S = length(output)
   n = sapply(output, length)

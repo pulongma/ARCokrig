@@ -14,7 +14,9 @@ this package}
 }
 \description{
 This function makes prediction in
- autogressive cokriging models for multivariate output
+ the parallel partial cokriging model. If a nested design is used, the predictive mean and predictive variance are
+ computed exactly; otherwise, Monte Carlo simulation from the predictive distribution is used to approximate
+the predictive mean and predictive variance.
 }
 \seealso{
 \code{\link{mvcokm}}, \code{\link{mvcokm.fit}}, \code{\link{mvcokm.condsim}}, \code{\link{ARCokrig}}

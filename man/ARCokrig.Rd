@@ -8,8 +8,8 @@ ARCokrig(
   formula = list(~1, ~1),
   output,
   input,
-  param,
   cov.model = "matern_5_2",
+  nugget.est = FALSE,
   input.new,
   prior = list(),
   opt = list(),
@@ -19,15 +19,11 @@ ARCokrig(
 )
 }
 \arguments{
-\item{formula}{a list including formulas to specify regressors for each level of codes}
+\item{formula}{a list of \eqn{s} elements, each of which contains the formula to specify fixed basis functions or regressors.}
 
-\item{output}{a list including output from computer model outputs.}
+\item{output}{a list of \eqn{s} elements, each of which contains a matrix of computer model outputs.}
 
-\item{input}{a list including inputs for computer models.}
-
-\item{param}{a list including initial values for 
-correlation parameters and nugget variance parameters if 
-nugget terms are included in AR-cokriging models.}
+\item{input}{a list of \eqn{s} elements, each of which contains a matrix of inputs.}
 
 \item{cov.model}{a string indicating the type of covariance
 function in AR-cokriging models. Current covariance functions include
@@ -41,11 +37,13 @@ smoothness parameter 5/2.}
 \item{powexp}{product form of power-exponential covariance functions with roughness parameter fixed at 1.9.}
 }}
 
+\item{nugget.est}{a logical value indicating whether nugget parameter is included or not. Default value is \code{FALSE}.}
+
 \item{input.new}{a matrix including new inputs for making prediction}
 
 \item{prior}{a list of arguments to setup the prior distributions
 \describe{
- \item{name}{the name of the prior. Current implementation include 
+ \item{name}{the name of the prior. Current implementation includes 
  \code{JR}, \code{Reference}, \code{Jeffreys}, \code{Ind_Jeffreys}}
  \item{hyperparam}{hyperparameters in the priors. 
  For jointly robust (JR) prior, three parameters are included: 
@@ -93,6 +91,9 @@ cokriging models to multifidelity computer model outputs.
 }
 \examples{
 
+##############################################################
+##############################################################
+############ Example
 Funcc = function(x){
   return(0.5*(6*x-2)^2*sin(12*x-4)+10*(x-0.5)-5)
 }
@@ -119,7 +120,7 @@ input.new = as.matrix(seq(-1,1,length.out=200))
 \dontrun{
 out = ARCokrig(formula=list(~1,~1+x1), output=list(c(zc), c(zf)),
               input=list(as.matrix(Dc), as.matrix(Df)),
-              param=list(0.4, 0.2), cov.model="matern_5_2",
+              cov.model="matern_5_2",
               input.new=input.new)
 
 ## plot results
@@ -127,8 +128,8 @@ library(ggplot2)
 cokrig = out$cokrig
 df.l1 = data.frame(x=c(Dc), y=c(zc))
 df.l2 = data.frame(x=c(Df), y=c(zf))
-CI.lower = cokrig$confint[[2]][ ,1]
-CI.upper = cokrig$confint[[2]][ ,2]
+CI.lower = cokrig$lower95[[2]]
+CI.upper = cokrig$upper95[[2]]
 df.CI = data.frame(x=c(input.new),lower=CI.lower, upper=CI.upper)
 df.pred = data.frame(x=c(input.new), y=cokrig$mu[[2]])
 

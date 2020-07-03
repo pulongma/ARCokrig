@@ -2,12 +2,9 @@
 #' @description This is a simple and high-level funciton to fit autoregressive
 #' cokriging models to multifidelity computer model outputs. 
 #'  
-#' @param formula a list including formulas to specify regressors for each level of codes
-#' @param output a list including output from computer model outputs.
-#' @param input a list including inputs for computer models.
-#' @param param a list including initial values for 
-#' correlation parameters and nugget variance parameters if 
-#' nugget terms are included in AR-cokriging models.
+#' @param formula a list of \eqn{s} elements, each of which contains the formula to specify fixed basis functions or regressors.
+#' @param output a list of \eqn{s} elements, each of which contains a matrix of computer model outputs.
+#' @param input a list of \eqn{s} elements, each of which contains a matrix of inputs.
 #' 
 #' @param cov.model a string indicating the type of covariance
 #' function in AR-cokriging models. Current covariance functions include
@@ -21,10 +18,11 @@
 #' \item{powexp}{product form of power-exponential covariance functions with roughness parameter fixed at 1.9.}
 #' }
 #' 
+#' @param nugget.est a logical value indicating whether nugget parameter is included or not. Default value is \code{FALSE}.
 #' @param input.new a matrix including new inputs for making prediction
 #' @param prior a list of arguments to setup the prior distributions
 #' \describe{
-#'  \item{name}{the name of the prior. Current implementation include 
+#'  \item{name}{the name of the prior. Current implementation includes 
 #'  \code{JR}, \code{Reference}, \code{Jeffreys}, \code{Ind_Jeffreys}}
 #'  \item{hyperparam}{hyperparameters in the priors. 
 #'  For jointly robust (JR) prior, three parameters are included: 
@@ -81,6 +79,9 @@
 #'
 #' @examples 
 #' 
+#' ##############################################################
+#' ##############################################################
+#' ############ Example
 #' Funcc = function(x){
 #'   return(0.5*(6*x-2)^2*sin(12*x-4)+10*(x-0.5)-5)
 #' }
@@ -107,7 +108,7 @@
 #' \dontrun{
 #' out = ARCokrig(formula=list(~1,~1+x1), output=list(c(zc), c(zf)),
 #'               input=list(as.matrix(Dc), as.matrix(Df)),
-#'               param=list(0.4, 0.2), cov.model="matern_5_2",
+#'               cov.model="matern_5_2",
 #'               input.new=input.new)
 #' 
 #' ## plot results
@@ -115,8 +116,8 @@
 #' cokrig = out$cokrig
 #' df.l1 = data.frame(x=c(Dc), y=c(zc))
 #' df.l2 = data.frame(x=c(Df), y=c(zf))
-#' CI.lower = cokrig$confint[[2]][ ,1]
-#' CI.upper = cokrig$confint[[2]][ ,2]
+#' CI.lower = cokrig$lower95[[2]]
+#' CI.upper = cokrig$upper95[[2]]
 #' df.CI = data.frame(x=c(input.new),lower=CI.lower, upper=CI.upper)
 #' df.pred = data.frame(x=c(input.new), y=cokrig$mu[[2]])
 #'
@@ -151,29 +152,29 @@
 
 
 
-ARCokrig <- function(formula=list(~1,~1), output, input, param, cov.model="matern_5_2",
+ARCokrig <- function(formula=list(~1,~1), output, input, cov.model="matern_5_2", nugget.est=FALSE,
 	input.new, prior=list(), opt=list(), NestDesign=TRUE, tuning=list(), info=list()){
   
   
   
   ## check the arguments 
-  .check.arg.ARCokrig(formula=formula, output=output, input=input, param=param,
+  .check.arg.ARCokrig(formula=formula, output=output, input=input,
                       input.new=input.new, prior=prior, opt=opt, 
                       NestDesign=NestDesign, tuning=tuning)
 
 
 
-  cat("\n Constructing the AR-Cokriging model object.\n\n")
-  obj = cokm(formula=formula, output=output, input=input, param=param,
-    cov.model=cov.model, prior=prior, opt=opt, NestDesign=NestDesign, 
+  #cat("\n Constructing the AR-Cokriging model object.\n\n")
+  obj = cokm(formula=formula, output=output, input=input, cov.model=cov.model,
+    nugget.est=nugget.est, prior=prior, opt=opt, NestDesign=NestDesign, 
     tuning=tuning, info=info)
 
   ## fit the AR-Cokriging model
-  cat("\n Fit the AR-Cokriging model.\n\n")
+  #cat("\n Fit the AR-Cokriging model.\n\n")
   obj = cokm.fit(obj)
   
   ## predict with the AR-Cokriging model
-	cat("\n Predict with the AR-Cokriging model\n\n")
+	#cat("\n Predict with the AR-Cokriging model\n\n")
 	pred = cokm.predict(obj=obj, input.new=input.new)
 
 	return(list(obj=obj, cokrig=pred))
@@ -183,7 +184,7 @@ ARCokrig <- function(formula=list(~1,~1), output, input, param, cov.model="mater
 
 #####################################################################
 #####################################################################
-.check.arg.ARCokrig <- function(formula, output, input, param, input.new, 
+.check.arg.ARCokrig <- function(formula, output, input, input.new, 
   prior, opt, NestDesign, tuning){
   
   if(!is(formula, "list")){
@@ -210,10 +211,10 @@ ARCokrig <- function(formula=list(~1,~1), output, input, param, cov.model="mater
   }
   
   
-  if(!is(param, "list")){
-    stop("\n\nparam should be a list with each element containing initial values for  
-         correlation parameters and nugget variance parameter (if needed).\n\n")
-  }
+  # if(!is(param, "list")){
+  #   stop("\n\nparam should be a list with each element containing initial values for  
+  #        correlation parameters and nugget variance parameter (if needed).\n\n")
+  # }
 
   if(!is(input.new, "matrix")){
     stop("\n\ninput.new should be a matrix.\n\n")

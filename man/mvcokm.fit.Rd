@@ -12,7 +12,7 @@ this package}
 }
 \description{
 This function estimates parameters in
- autogressive cokriging models
+ the parallel partial cokriging model
 }
 \seealso{
 \code{\link{mvcokm}}, \code{\link{mvcokm.predict}}, \code{\link{mvcokm.condsim}}, \code{\link{ARCokrig}}

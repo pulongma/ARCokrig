@@ -2,12 +2,9 @@
 #' @description This function constructs the cokm object in
 #'  autogressive cokriging models
 #'  
-#' @param formula a list including formulas to specify regressors for each level of codes
-#' @param output a list including output from computer models
-#' @param input a list including inputs for computer models.
-#' @param param a list including initial values for 
-#' correlation parameters and nugget variance parameters if 
-#' nugget terms are included in AR-cokriging models.
+#' @param formula a list of \eqn{s} elements, each of which contains the formula to specify fixed basis functions or regressors.
+#' @param output a list of \eqn{s} elements, each of which contains a matrix of computer model outputs.
+#' @param input a list of \eqn{s} elements, each of which contains a matrix of inputs.
 #' @param cov.model a string indicating the type of covariance
 #' function in AR-cokriging models. Current covariance functions include
 #' \describe{
@@ -20,9 +17,10 @@
 #' \item{powexp}{product form of power-exponential covariance functions with roughness parameter fixed at 1.9.}
 #' }
 #' 
-#' @param prior a list of arguments to setup the prior distributions
+#' @param nugget.est a logical value indicating whether the nugget is included or not. Default value is \code{FALSE}.
+#' @param prior a list of arguments to setup the prior distributions with the reference prior as default.
 #' \describe{
-#'  \item{name}{the name of the prior. Current implementation include 
+#'  \item{name}{the name of the prior. Current implementation includes 
 #'  \code{JR}, \code{Reference}, \code{Jeffreys}, \code{Ind_Jeffreys}}
 #'  \item{hyperparam}{hyperparameters in the priors. 
 #'  For jointly robust (JR) prior, three parameters are included: 
@@ -62,21 +60,28 @@
 #' @export
 
 
-cokm <- function(formula=list(~1,~1), output, input, param, cov.model="matern_5_2",
+cokm <- function(formula=list(~1,~1), output, input, cov.model="matern_5_2", nugget.est=FALSE,
 	prior=list(), opt=list(), NestDesign=TRUE, tuning=list(), info=list()){
 
 ## check the arguments 
-  .check.arg.cokm(formula=formula, output=output, input=input, param=param,
+  .check.arg.cokm(formula=formula, output=output, input=input,
                   prior=prior, opt=opt, NestDesign=NestDesign, tuning=tuning,
                   info=info)
 
   S = length(output)  # number of code levels
 
   Dim = dim(input[[1]])[2]
-  if(length(param[[1]])==Dim){
-    is.nugget=FALSE
-  }else{
-    is.nugget=TRUE
+  # if(length(param[[1]])==Dim){
+  #   is.nugget=FALSE
+  # }else{
+  #   is.nugget=TRUE
+  # }
+  is.nugget = nugget.est
+  param = list()
+  for(i in 1:S){
+    param.max = apply(input[[i]], 2, max)
+    param.min = apply(input[[i]], 2, min)
+    param[[i]] = (param.max-param.min)/2
   }
   
   phi = do.call(cbind, param)
@@ -136,7 +141,7 @@ cokm <- function(formula=list(~1,~1), output, input, param, cov.model="matern_5_
   }
   
   if(!exists("name", where=prior)){
-    prior$name = "JR"
+    prior$name = "Reference"
   }
   
   if(!exists("hyperparam", where=prior)){
@@ -182,7 +187,7 @@ cokm <- function(formula=list(~1,~1), output, input, param, cov.model="matern_5_
 
 #####################################################################
 #####################################################################
-.check.arg.cokm <- function(formula, output, input, param, prior, opt, 
+.check.arg.cokm <- function(formula, output, input, prior, opt, 
   NestDesign, tuning, info){
   
   if(!is(formula, "list")){
@@ -209,10 +214,10 @@ cokm <- function(formula=list(~1,~1), output, input, param, cov.model="matern_5_
   }
   
   
-  if(!is(param, "list")){
-    stop("\n\nparam should be a list with each element containing initial values for  
-         correlation parameters and nugget variance parameter (if needed).\n\n")
-  }
+  # if(!is(param, "list")){
+  #   stop("\n\nparam should be a list with each element containing initial values for  
+  #        correlation parameters and nugget variance parameter (if needed).\n\n")
+  # }
 
   if(!is(prior, "list")){
     stop("\n\nprior should be a list containing arguments to

@@ -10,13 +10,13 @@ This is an S4 class definition for \code{\link{mvcokm}} in the \code{\link{ARCok
 \section{Slots}{
 
 \describe{
-\item{\code{output}}{a list including output from computer model outputs.}
+\item{\code{output}}{a list of \eqn{s} elements, each of which contains a matrix of computer model outputs.}
 
-\item{\code{input}}{a list including inputs for computer models.}
+\item{\code{input}}{a list of \eqn{s} elements, each of which contains a matrix of inputs.}
 
-\item{\code{param}}{a list including initial values for 
-correlation parameters and nugget variance parameters if 
-nugget terms are included in AR-cokriging models.}
+\item{\code{param}}{a list of \eqn{s} elements, each of which contains a vector of initial values for 
+correlation parameters (and nugget variance parameters if 
+nugget terms are included in AR-cokriging models).}
 
 \item{\code{cov.model}}{a string indicating the type of covariance
 function in AR-cokriging models. Current covariance functions include
@@ -34,6 +34,8 @@ smoothness parameter 3/2.}
 \item{aniso_matern_5_2}{anisotropic form of Matern covariance functions with 
 smoothness parameter 5/2.}
 }}
+
+\item{\code{nugget.est}}{a logical value indicating whether the nugget is included or not. Default value is \code{FALSE}.}
 
 \item{\code{prior}}{a list of arguments to setup the prior distributions
 \describe{

@@ -24,7 +24,11 @@ Df <- Dc[indDf]
 zf <- Funcf(Df)
 
 input.new = as.matrix(seq(-1,1,length.out=200))
-
+obj = cokm(formula=list(~1,~1+x1), output=list(c(zc), c(zf)),
+           input=list(as.matrix(Dc), as.matrix(Df)),
+           cov.model="matern_5_2")
+#obj = cokm.fit(obj)
+cokrige = cokm.predict(obj, input.new)
 #out = ARCokrig(formula=list(~1,~1+x1), output=list(c(zc), c(zf)),
 #               input=list(as.matrix(Dc), as.matrix(Df)),
-#               param=list(0.4, 0.2), cov.model="matern_5_2")
+#               cov.model="matern_5_2")

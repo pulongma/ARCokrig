@@ -1,6 +1,6 @@
 #' @title fit the autoregressive cokriging model for multivariate output
 #' @description This function estimates parameters in
-#'  autogressive cokriging models
+#'  the parallel partial cokriging model
 #'
 #' @param obj a \code{\link{mvcokm}} object construted via the function \code{\link{mvcokm}} in 
 #' this package
@@ -19,6 +19,7 @@ output = obj@output
 input = obj@input 
 param = obj@param
 cov.model = obj@cov.model 
+nugget.est = obj@nugget.est
 prior = obj@prior
 NestDesign = obj@NestDesign
 opt = obj@opt 
@@ -32,12 +33,12 @@ phi = do.call(cbind, param)
 
 Dim = dim(input[[1]])[2]
 p.x = Dim
-if(dim(phi)[1]==Dim){
-	is.nugget=FALSE
-}else{
-	is.nugget=TRUE
-}
-
+# if(dim(phi)[1]==Dim){
+# 	is.nugget=FALSE
+# }else{
+# 	is.nugget=TRUE
+# }
+is.nugget = nugget.est
 
 
 

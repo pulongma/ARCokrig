@@ -1,7 +1,8 @@
 #' @title Prediction at new inputs in autoregressive cokriging models for multivarite output
 #' @description This function makes prediction in
-#'  autogressive cokriging models for multivariate output
-#'  
+#'  the parallel partial cokriging model. If a nested design is used, the predictive mean and predictive variance are
+#'  computed exactly; otherwise, Monte Carlo simulation from the predictive distribution is used to approximate
+#' the predictive mean and predictive variance. 
 #' @param obj a \code{\link{mvcokm}} object construted via the function \code{\link{mvcokm}} in 
 #' this package
 #' @param input.new a matrix including new inputs for making prediction

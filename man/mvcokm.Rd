@@ -8,8 +8,8 @@ mvcokm(
   formula = list(~1, ~1),
   output,
   input,
-  param,
   cov.model = "matern_5_2",
+  nugget.est = FALSE,
   prior = list(),
   opt = list(),
   NestDesign = TRUE,
@@ -18,18 +18,14 @@ mvcokm(
 )
 }
 \arguments{
-\item{formula}{a list including formulas to specify regressors for each level of codes}
+\item{formula}{a list of \eqn{s} elements, each of which contains the formula to specify fixed basis functions or regressors.}
 
-\item{output}{a list including output from computer models}
+\item{output}{a list of \eqn{s} elements, each of which contains a matrix of computer model outputs.}
 
-\item{input}{a list including inputs for computer models.}
-
-\item{param}{a list including initial values for 
-correlation parameters and nugget variance parameters if 
-nugget terms are included in AR-cokriging models.}
+\item{input}{a list of \eqn{s} elements, each of which contains a matrix of inputs.}
 
 \item{cov.model}{a string indicating the type of covariance
-function in AR-cokriging models. Current covariance functions include
+function in the PP cokriging models. Current covariance functions include
 \describe{
 \item{exp}{product form of exponential covariance functions.} 
 \item{matern_3_2}{product form of Matern covariance functions with 
@@ -40,9 +36,11 @@ smoothness parameter 5/2.}
 \item{powexp}{product form of power-exponential covariance functions with roughness parameter fixed at 1.9.}
 }}
 
-\item{prior}{a list of arguments to setup the prior distributions
+\item{nugget.est}{a logical value indicating whether the nugget is included or not. Default value is \code{FALSE}.}
+
+\item{prior}{a list of arguments to setup the prior distributions with the jointly robust prior as default
 \describe{
- \item{name}{the name of the prior. Current implementation include 
+ \item{name}{the name of the prior. Current implementation includes 
  \code{JR}, \code{Reference}, \code{Jeffreys}, \code{Ind_Jeffreys}}
  \item{hyperparam}{hyperparameters in the priors. 
  For jointly robust (JR) prior, three parameters are included: 
@@ -80,7 +78,7 @@ design. It includes the arguments
 }
 \description{
 This function constructs the mvcokm object in
-  autogressive cokriging models for multivariate outputs
+  autogressive cokriging models for multivariate outputs. The model is known as the parallel partial (PP) cokriging emulator.
 }
 \seealso{
 \code{\link{ARCokrig}}, \code{\link{mvcokm.fit}}, \code{\link{mvcokm.predict}}, \code{\link{mvcokm.condsim}}

@@ -10,13 +10,13 @@ This is an S4 class definition for \code{\link{cokm}} in the \code{\link{ARCokri
 \section{Slots}{
 
 \describe{
-\item{\code{output}}{a list including output from computer model outputs.}
+\item{\code{output}}{a list of \eqn{s} elements, each of which contains a matrix of computer model outputs.}
 
-\item{\code{input}}{a list including inputs for computer models.}
+\item{\code{input}}{a list of \eqn{s} elements, each of which contains a matrix of inputs.}
 
-\item{\code{param}}{a list including initial values for 
-correlation parameters and nugget variance parameters if 
-nugget terms are included in AR-cokriging models.}
+\item{\code{param}}{a list of \eqn{s} elements, each of which contains a vector of initial values for 
+correlation parameters (and nugget variance parameters if 
+nugget terms are included in AR-cokriging models).}
 
 \item{\code{cov.model}}{a string indicating the type of covariance
 function in AR-cokriging models. Current covariance functions include
@@ -30,9 +30,11 @@ smoothness parameter 5/2.}
 \item{powexp}{product form of power-exponential covariance functions with roughness parameter fixed at 1.9.}
 }}
 
-\item{\code{prior}}{a list of arguments to setup the prior distributions
+\item{\code{nugget.est}}{a logical value indicating whether nugget parameter is included or not. Default value is \code{FALSE}.}
+
+\item{\code{prior}}{a list of arguments to setup the prior distributions with the reference prior as default
 \describe{
-\item{name}{the name of the prior. Current implementation include 
+\item{name}{the name of the prior. Current implementation includes 
  \code{JR}, \code{Reference}, \code{Jeffreys}, \code{Ind_Jeffreys}}
  \item{hyperparam}{hyperparameters in the priors. 
 For jointly robust (JR) prior, three parameters are included: 
