@@ -58,7 +58,7 @@
 #'  \item{iter}{number of iterations used in the MCEM algorithm}
 #'  \item{eps}{parameter difference after the MCEM algorithm stops.}
 #'}
-#' @keywords AR-Cokriging, computer-experiments, UQ
+#' @keywords AR-Cokriging Objective-Bayes Computer-Experiments Uncertainty-Quantification
 #' 
 #' @author Pulong Ma <mpulong@gmail.com>
 #' 
