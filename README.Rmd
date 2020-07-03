@@ -34,20 +34,65 @@ This is a basic example which shows you how to solve a common problem:
 ```{r example}
 library(ARCokrig)
 ## basic example code
+Funcc = function(x){
+  return(0.5*(6*x-2)^2*sin(12*x-4)+10*(x-0.5)-5)
+}
+
+Funcf = function(x){
+  z1 = Funcc(x)
+  z2 = 2*z1-20*x+20 + sin(10*cos(5*x))
+  return(z2)
+}
+
+Dc <- seq(-1,1,0.1)
+indDf <- c(1, 3, 6, 8, 10, 13, 17, 21)
+zc <- Funcc(Dc)
+Df <- Dc[indDf]
+zf <- Funcf(Df)
+
+input.new = as.matrix(seq(-1,1,length.out=200))
+
+## create the cokm object
+prior = list(name="Reference")
+obj = cokm(formula=list(~1,~1+x1), output=list(zc, zf),
+           input=list(as.matrix(Dc), as.matrix(Df)),
+           prior=prior, cov.model="matern_5_2")
+## update model parameters in the cokm object
+obj = cokm.fit(obj)
+
+out = cokm.predict(obj, input.new)
+pred.ND = out
+df.l1 = data.frame(x=c(Dc), y=c(zc))
+df.l2 = data.frame(x=c(Df), y=c(zf))
+
+
+g7 = ggplot(data.frame(x=c(-1,1)), aes(x)) + 
+  stat_function(fun=Funcc, geom="line", aes(colour="level 1"), n=500) +
+  stat_function(fun=Funcf, geom="line", aes(colour="level 2"), n=500) 
+
+g7 = g7 + geom_point(data=df.l1, mapping=aes(x=x, y=y), shape=16, size=2, color="black") + 
+  geom_point(data=df.l2, mapping=aes(x=x, y=y), shape=17, size=2, color="black")
+
+
+CI.lower = pred.ND$lower95[[2]]
+CI.upper = pred.ND$upper95[[2]]
+df.CI = data.frame(x=c(input.new),lower=CI.lower, upper=CI.upper)
+df.pred = data.frame(x=c(input.new), y=pred.ND$mu[[2]])
+
+g7 = g7 + geom_line(data=df.pred, aes(x=x, y=y, colour="cokriging"), inherit.aes=FALSE)
+g7 = g7 + geom_ribbon(data=df.CI, mapping=aes(x=x,ymin=lower, ymax=upper), fill="gray40",
+                      alpha=0.3, inherit.aes=FALSE)
+g7 = g7 +   scale_colour_manual(name=NULL, values=c("red","blue", "turquoise3"), 
+                                breaks=c("cokriging","level 1", "level 2"))
+g7 = g7 + ggtitle("Nested Design") + 
+  theme(plot.title=element_text(size=14),
+        axis.title.x=element_text(size=14),
+        axis.text.x=element_text(size=14),
+        axis.title.y=element_text(size=14),
+        axis.text.y=element_text(size=14),
+        legend.text = element_text(size=12),
+        legend.direction = "horizontal",
+        legend.position = c(0.6, 0.1)) + xlab("") + ylab("")
+print(g7)
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
-
-```{r cars}
-summary(cars)
-```
-
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date.
-
-You can also embed plots, for example:
-
-```{r pressure, echo = FALSE}
-plot(pressure)
-```
-
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub!
