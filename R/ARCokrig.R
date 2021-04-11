@@ -105,13 +105,14 @@
 #' 
 #' 
 #' ## fit and predict with the AR-Cokriging model
-#' \dontrun{
+#' 
 #' out = ARCokrig(formula=list(~1,~1+x1), output=list(c(zc), c(zf)),
 #'               input=list(as.matrix(Dc), as.matrix(Df)),
 #'               cov.model="matern_5_2",
 #'               input.new=input.new)
 #' 
 #' ## plot results
+#' \donttest{
 #' library(ggplot2)
 #' cokrig = out$cokrig
 #' df.l1 = data.frame(x=c(Dc), y=c(zc))
@@ -205,7 +206,7 @@ ARCokrig <- function(formula=list(~1,~1), output, input, cov.model="matern_5_2",
 
   for(t in 1:s){
     if(!is(input[[t]], "matrix")){
-      cat("\n\n coerce input to a matrix format.\n\n")
+      message("\n\n coerce input to a matrix format.\n\n")
       input[[t]] = as.matrix(input[[t]])
     }
   }

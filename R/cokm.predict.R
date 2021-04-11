@@ -43,12 +43,11 @@
 #'               prior=prior, cov.model="matern_5_2")
 #'
 #' ## update model parameters in the cokm object
-#' \dontrun{
+#' 
 #' obj = cokm.fit(obj)
 #' 
-#' 
 #' cokrige = cokm.predict(obj, input.new)
-#' }
+#' 
 #' 
 
 cokm.predict <- function(obj, input.new){

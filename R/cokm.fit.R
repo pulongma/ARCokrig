@@ -42,9 +42,9 @@
 #'               prior=prior, cov.model="matern_5_2")
 #'
 #' ## update model parameters in the cokm object
-#' \dontrun{
+#' 
 #' obj = cokm.fit(obj)
-#' }
+#' 
 #' 
 
 
@@ -138,7 +138,7 @@ if(NestDesign){
 
 		if(inherits(fit, "try-error")){
 			phi.new[ ,t] = phi[ ,t]
-			cat("\n optimization error, skip t=", t, "\n")
+			print(paste0("optimization error, skip t=", as.character(t)))
 			print(fit)
 		}else{
 			if(is.nugget){
@@ -262,7 +262,7 @@ if(NestDesign){
 
 			if(inherits(fit, "try-error")){
 				phi.new[ ,t] = phi[ ,t]
-				cat("\n optimization error, skip t=", t, "\n")
+				print(paste0("optimization error, skip t=", as.character(t)))
 				print(fit)
 			}else{
 				if(is.nugget){
@@ -284,7 +284,7 @@ if(NestDesign){
 	    }
 
 		if(verbose){
-			cat("iter=", iter, "\n")
+			print(paste0("iter=", as.character(iter)))
 		}
 		
 

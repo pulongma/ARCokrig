@@ -905,7 +905,7 @@ p.x = Dim
 
 t = level 
 n = dim(output[[t]])[1] # number of model runs
-N = dim(output[[t]])[2] # number of spatial locations
+N = dim(output[[t]])[2] # number of spatial lomessageions
 
 
 if(is.null(hyper)){
@@ -1282,7 +1282,7 @@ for(t in 1:S){
 
   if(inherits(fit, "try-error")){
     phi.new[ ,t] = phi[ ,t]
-    cat("\n optimization error, skip t=", t, "\n")
+    message("\n optimization error, skip t=", t, "\n")
     print(fit)
   }else{
     if(is.nugget){
@@ -1441,7 +1441,7 @@ while(!conv){
 
     if(inherits(fit, "try-error")){
       phi.new[ ,t] = phi[ ,t]
-      cat("\n optimization error, skip t=", t, "\n")
+      message("\n optimization error, skip t=", t, "\n")
       print(fit)
     }else{
       if(is.nugget){
@@ -1463,7 +1463,7 @@ while(!conv){
     }
 
   if(verbose){
-    cat("iter=", iter, "\n")
+    message("iter=", iter, "\n")
   }
   
 

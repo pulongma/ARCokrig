@@ -115,12 +115,12 @@ create.w.pred <- function(t, input, input.miss, y, ym){
 ismember <- function(matA, matB){
 	
 	if(!is.matrix(matA)){
-		cat("\n The first argument is not a matrix!\n")
+		message("\n The first argument is not a matrix!\n")
 		matA = as.matrix(matA)
 	}
 
 	if(!is.matrix(matB)){
-		cat("\n The second argument is not a matrix!\n")
+		message("\n The second argument is not a matrix!\n")
 		matA = as.matrix(matB)
 	}
 
@@ -151,12 +151,12 @@ ismember <- function(matA, matB){
 match.input = function(input1, input2){
 
   if(!is.matrix(input1)){
-    cat("\n The first argument is not a matrix!\n")
+    message("\n The first argument is not a matrix!\n")
     input1 = as.matrix(input1)
   }
 
   if(!is.matrix(input2)){
-    cat("\n The second argument is not a matrix!\n")
+    message("\n The second argument is not a matrix!\n")
     input2 = as.matrix(input2)
   }
 
@@ -209,7 +209,7 @@ match.input = function(input1, input2){
 CRPS <- function(x, mu, sig){
 
   xo = (x-mu)/sig
-  crps = sig*(xo*(2*pnorm(xo)-1) + 2*pnorm(xo) - 1/sqrt(pi))
+  crps = sig*(xo*(2*pnorm(xo)-1) + 2*dnorm(xo) - 1/sqrt(pi))
   
   return(crps)
 }

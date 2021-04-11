@@ -208,7 +208,7 @@ cokm <- function(formula=list(~1,~1), output, input, cov.model="matern_5_2", nug
 
   for(t in 1:s){
     if(!is(input[[t]], "matrix")){
-      cat("\n\n coerce input to a matrix format.\n\n")
+      message("\n\n coerce input to a matrix format.\n\n")
       input[[t]] = as.matrix(input[[t]])
     }
   }
@@ -246,13 +246,13 @@ cokm <- function(formula=list(~1,~1), output, input, cov.model="matern_5_2", nug
 
 setMethod("summary", signature(object="cokm"),
           function(object, ...){
-            cat("cokm object\n")
-            cat("\n")
-            cat(paste0("Code levels:", length(object@data)))
-            cat("\n")
-            cat(paste0("Is nugget included:", object@nugget.est))
-            cat("\n")
-            cat(paste0("Nested Design:", object@NestDesign))
-            cat("\n\n")
+            message("cokm object\n")
+            message("\n")
+            message(paste0("Code levels:", length(object@data)))
+            message("\n")
+            message(paste0("Is nugget included:", object@nugget.est))
+            message("\n")
+            message(paste0("Nested Design:", object@NestDesign))
+            message("\n\n")
           })
 

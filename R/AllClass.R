@@ -109,9 +109,9 @@ setClass("cokm", representation(
 #' 
 #' @slot nugget.est a logical value indicating whether the nugget is included or not. Default value is \code{FALSE}.
 #' 
-#' @slot prior a list of arguments to setup the prior distributions
+#' @slot prior a list of arguments to setup the prior distributions with the jointly robust prior as default
 #' \describe{
-#'	\item{name}{the name of the prior. Current implementation include 
+#'	\item{name}{the name of the prior. Current implementation includes 
 #'  \code{JR}, \code{Reference}, \code{Jeffreys}, \code{Ind_Jeffreys}}
 #'  \item{hyperparam}{hyperparameters in the priors. 
 #'	For jointly robust (JR) prior, three parameters are included: 
@@ -145,7 +145,7 @@ setClass("cokm", representation(
 #'  \item{eps}{parameter difference after the MCEM algorithm stops}
 #'}
 #'
-#' @keywords AR-Cokriging, computer-experiments, UQ
+#' @keywords AR-Cokriging Objective-Bayes Computer-Experiments Uncertainty-Quantification
 #' 
 #' @author Pulong Ma <mpulong@gmail.com>
 #' 

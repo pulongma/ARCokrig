@@ -40,12 +40,12 @@
 #'               prior=prior, cov.model="matern_5_2")
 #'
 #' ## update model parameters in the cokm object
-#' \dontrun{
+#' 
 #' obj = cokm.fit(obj)
 #' 
 #' 
 #' cokrige = cokm.condsim(obj, input.new, nsample=30)
-#' }
+#' 
 #' 
 
 

@@ -37,9 +37,9 @@ smoothness parameter 5/2.}
 
 \item{\code{nugget.est}}{a logical value indicating whether the nugget is included or not. Default value is \code{FALSE}.}
 
-\item{\code{prior}}{a list of arguments to setup the prior distributions
+\item{\code{prior}}{a list of arguments to setup the prior distributions with the jointly robust prior as default
 \describe{
-\item{name}{the name of the prior. Current implementation include 
+\item{name}{the name of the prior. Current implementation includes 
  \code{JR}, \code{Reference}, \code{Jeffreys}, \code{Ind_Jeffreys}}
  \item{hyperparam}{hyperparameters in the priors. 
 For jointly robust (JR) prior, three parameters are included: 
@@ -77,6 +77,7 @@ design. It includes the arguments
 \author{
 Pulong Ma <mpulong@gmail.com>
 }
-\keyword{AR-Cokriging,}
-\keyword{UQ}
-\keyword{computer-experiments,}
+\keyword{AR-Cokriging}
+\keyword{Computer-Experiments}
+\keyword{Objective-Bayes}
+\keyword{Uncertainty-Quantification}

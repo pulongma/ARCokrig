@@ -74,6 +74,7 @@ design. It includes the arguments
 \author{
 Pulong Ma <mpulong@gmail.com>
 }
-\keyword{AR-Cokriging,}
-\keyword{UQ}
-\keyword{computer-experiments,}
+\keyword{AR-Cokriging}
+\keyword{Computer-Experiments}
+\keyword{Objective-Bayes}
+\keyword{Uncertainty-Quantification}

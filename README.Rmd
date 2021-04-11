@@ -1,10 +1,11 @@
+README.Rmd
 ---
-output: github_document
+  output: github_document
 ---
-
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
-```{r, include = FALSE}
+  
+  <!-- README.md is generated from README.Rmd. Please edit that file -->
+  
+  ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -15,23 +16,23 @@ knitr::opts_chunk$set(
 # ARCokrig
 
 <!-- badges: start -->
-<!-- badges: end -->
-
-The goal of ARCokrig is to emulate multifidelity computer models based on autoregressive cokriging models. The major methods include univariate autoregressive cokriging and multivariate autoregressive cokriging. The autoregressive cokriging methods are implemented for both hierarchically nested design and non-nested design. For hierarchically nested design, the model parameters are estimated via standard optimization algorithms; For non-nested design, the model parameters are estimated via MCEM algorithms. In both cases, the priors are chosen such that the posterior distributions are proper. Notice that the uniform priors on range parameters in the correlation function lead to improper posteriors. This should be avoided when Bayesian analysis is adopted. 
+  <!-- badges: end -->
+  
+  The goal of ARCokrig is to emulate multifidelity computer models based on autoregressive cokriging models. The major methods include univariate autoregressive cokriging and multivariate autoregressive cokriging. The autoregressive cokriging methods are implemented for both hierarchically nested design and non-nested design. For hierarchically nested design, the model parameters are estimated via standard optimization algorithms; For non-nested design, the model parameters are estimated via MCEM algorithms. In both cases, the priors are chosen such that the posterior distributions are proper. Notice that the uniform priors on range parameters in the correlation function lead to improper posteriors. This should be avoided when Bayesian analysis is adopted. 
 
 ## Installation
 
 You can install the released version of ARCokrig from [CRAN](https://CRAN.R-project.org) with:
-
-``` r
+  
+  ``` r
 install.packages("ARCokrig")
 ```
 
 ## Example
 
 This is a basic example which shows you how to solve a common problem:
-
-```{r example}
+  
+  ```{r example}
 library(ARCokrig)
 ## basic example code
 Funcc = function(x){
@@ -95,4 +96,3 @@ g7 = g7 + ggtitle("Nested Design") +
         legend.position = c(0.6, 0.1)) + xlab("") + ylab("")
 print(g7)
 ```
-

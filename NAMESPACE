@@ -1,4 +1,5 @@
 import(methods)
+import(ggplot2)
 
 importFrom(Rcpp, evalCpp)
 importFrom(stats, optim)
@@ -13,6 +14,7 @@ importFrom(stats, model.matrix)
 importFrom(stats, quantile)
 importFrom(stats, formula)
 importFrom(stats, pnorm)
+importFrom(stats, dnorm)
 
 export(cokm)
 export(cokm.predict)

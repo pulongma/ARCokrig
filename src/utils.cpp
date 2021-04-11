@@ -2,7 +2,6 @@
 #include <R_ext/Utils.h>   // interrupt the Gibbs sampler from R
 
 #include <RcppArmadillo.h>
-#define NDEBUG 1
 #include <RcppEigen.h>
 //[[Rcpp::depends(RcppArmadillo)]]
 //[[Rcpp::depends(RcppEigen)]]

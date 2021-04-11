@@ -48,12 +48,12 @@ obj = cokm(formula=list(~1,~1+x1), output=list(c(zc), c(zf)),
               prior=prior, cov.model="matern_5_2")
 
 ## update model parameters in the cokm object
-\dontrun{
+
 obj = cokm.fit(obj)
 
 
 cokrige = cokm.condsim(obj, input.new, nsample=30)
-}
+
 
 }
 \seealso{
