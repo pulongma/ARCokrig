@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 # ARCokrig
 
 <!-- badges: start -->
+[![](https://cranlogs.r-pkg.org/badges/ARCokrig)](https://cran.r-project.org/package=ARCokrig) 
   <!-- badges: end -->
   
   The goal of ARCokrig is to emulate multifidelity computer models based on autoregressive cokriging models. The major methods include univariate autoregressive cokriging and multivariate autoregressive cokriging. The autoregressive cokriging methods are implemented for both hierarchically nested design and non-nested design. For hierarchically nested design, the model parameters are estimated via standard optimization algorithms; For non-nested design, the model parameters are estimated via MCEM algorithms. In both cases, the priors are chosen such that the posterior distributions are proper. Notice that the uniform priors on range parameters in the correlation function lead to improper posteriors. This should be avoided when Bayesian analysis is adopted. 
